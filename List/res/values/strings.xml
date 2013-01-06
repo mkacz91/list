@@ -5,5 +5,13 @@
     <string name="title_activity_main">List</string>
     <string name="menu_select_all">Select all</string>
     <string name="menu_delete_selected">Delete selected</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="cancel">Cancel</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_item_edit">Edit Item</string>
+    <string name="update">Update</string>
+    <string name="caption">Caption</string>
+    <string name="description">Description</string>
 
 </resources>
