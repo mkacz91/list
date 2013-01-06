@@ -5,10 +5,11 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,12 +21,14 @@ public class MainActivity extends Activity
 	final static int	REQUEST_EDIT	= 1;
 	final static int	REQUEST_ADD		= 2;
 	
+	private SharedPreferences preferences;
 	private final List<ListItem> items = new LinkedList<ListItem>();
 	private MyListAdapter adapter;
 	private EditText filterEditText;
 	
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -37,10 +40,21 @@ public class MainActivity extends Activity
         filterEditText.addTextChangedListener(filterTextWatcher);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(listener);
-        listView.requestFocus();
         
-        if (savedInstanceState == null)
-        	populateList();
+        
+        // Restore application state
+        preferences = this.getPreferences(MODE_PRIVATE);
+        String serializedItems = preferences.getString("items", "");
+        String[] tokens = serializedItems.split(String.valueOf((char) 30));
+        int i = 0;
+        while (i < tokens.length - 2)
+        {
+        	boolean checked = tokens[i++].equals("t") ? true : false;
+        	adapter.addItem(new ListItem(checked, tokens[i++], tokens[i++]));
+        }
+        adapter.notifyDataSetChanged();
+        
+        listView.requestFocus();
     }
 
     @Override
@@ -49,11 +63,30 @@ public class MainActivity extends Activity
         return true;
     }
     
+    @Override
+    public void onPause()
+    {
+    	// Save application state
+    	StringBuffer serializedItems = new StringBuffer();
+    	char sep = (char) 30;
+    	for (ListItem item : items)
+    	{
+    		char checked = item.isChecked() ? 't' : 'f';
+    		serializedItems.append(checked).append(sep);
+    		serializedItems.append(item.getCaption()).append(sep);
+    		serializedItems.append(item.getDescription()).append(sep);
+    	}
+    	Editor editor = preferences.edit();
+    	editor.putString("items", serializedItems.toString());
+    	editor.commit();
+    	super.onDestroy();
+    }
+    
     public void clearFilter(View view)
     {
     	filterEditText.setText(null);
-    	//adapter.filter("");
     }
+    
     
     private TextWatcher filterTextWatcher = new TextWatcher()
     {
@@ -61,6 +94,7 @@ public class MainActivity extends Activity
     	public void beforeTextChanged(CharSequence s, int start, int count,
     			int after) {}
     	
+    	// This is called every time the filter text changes.
     	public void onTextChanged(CharSequence s, int start, int count,
     			int after)
     	{
@@ -68,6 +102,7 @@ public class MainActivity extends Activity
     	}
     };
     
+    // This handles Edit and Add information provided by ItemEditActivity
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data)
     {
@@ -100,55 +135,16 @@ public class MainActivity extends Activity
     		intent.putExtra("requestCode", REQUEST_ADD);
     		startActivityForResult(intent, REQUEST_ADD);
     		return true;
+    		
+    	case R.id.menu_populate:
+    		populateList();
+    		return true;
     	}
     	
     	return super.onOptionsItemSelected(item);
     }
     
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState)
-    {
-    	Log.d("lol", "lol");
-    	int itemCount = items.size();
-    	boolean[] checkedStates = new boolean[itemCount];
-    	String[] captions = new String[itemCount];
-    	String[] descriptions = new String[itemCount];
-    	
-    	int i = 0;
-    	for (ListItem item : items)
-    	{
-    		checkedStates[i] = item.isChecked();
-    		captions[i] = item.getCaption();
-    		descriptions[i] = item.getDescription();
-    		++i;
-    	}
-    	
-    	savedInstanceState.putInt("itemCount", itemCount);
-    	savedInstanceState.putBooleanArray("checkedStates", checkedStates);
-    	savedInstanceState.putStringArray("captions", captions);
-    	savedInstanceState.putStringArray("descriptions", descriptions);
-    	
-    	super.onSaveInstanceState(savedInstanceState);
-    }
-    
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState)
-    {
-    	int itemCount = savedInstanceState.getInt("itemCount");
-    	boolean[] checkedStates = savedInstanceState.getBooleanArray(
-    			"checkedStates");
-    	String[] captions = savedInstanceState.getStringArray("captions");
-    	String[] descriptions = savedInstanceState.getStringArray(
-    			"descriptions");
-    	
-    	for (int i = 0; i < itemCount; ++i)
-    		adapter.addItem(new ListItem(checkedStates[i], captions[i],
-    				descriptions[i]));
-    	adapter.notifyDataSetChanged();
-    	
-    	super.onRestoreInstanceState(savedInstanceState);
-    }
-    
+    // Called on "Populate" menu item click. For testing purposes.
     private void populateList()
     {
     	adapter.addItem(new ListItem("Mieszkam w Legnicy", "Mieœcie wielu " +
