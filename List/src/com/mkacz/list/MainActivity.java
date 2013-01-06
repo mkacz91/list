@@ -8,13 +8,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ListView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity
 {
-	final int REQUEST_EDIT	= 1;
-	final int REQUEST_ADD	= 2;
+	final static int REQUEST_EDIT	= 1;
+	final static int REQUEST_ADD	= 2;
 	
 	private final List<ListItem> items = new LinkedList<ListItem>();
 	private MyListAdapter adapter;
@@ -51,13 +51,32 @@ public class MainActivity extends Activity
     		item.setCaption(data.getStringExtra("caption"));
     		item.setDescription(data.getStringExtra("description"));
     		adapter.notifyDataSetInvalidated();
-    		Toast toast = Toast.makeText(this, "Edit returned!", Toast.LENGTH_SHORT);
-    		toast.show();
     		break;
     		
     	case REQUEST_ADD:
+    		adapter.add(new ListItem(data.getStringExtra("caption"),
+    				data.getStringExtra("description")));
     		break;
     	}
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+    	switch (item.getItemId())
+    	{
+    	case R.id.menu_select_all:
+    		return true;
+    		
+    	case R.id.menu_new_item:
+    		
+    		Intent intent = new Intent(this, ItemEditActivity.class);
+    		intent.putExtra("requestCode", REQUEST_ADD);
+    		startActivityForResult(intent, REQUEST_ADD);
+    		return true;
+    	}
+    	
+    	return super.onOptionsItemSelected(item);
     }
     
     private void populateList()

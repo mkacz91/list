@@ -24,13 +24,13 @@ public class ListItemHoldPopupListener implements OnClickListener
 		{
 		case R.id.item_edit_button:
 			ListItem item = adapter.getItem(position);
-			Intent intent = new Intent(view.getContext(),
-					ItemEditActivity.class);
 			MainActivity main = (MainActivity) view.getContext();
+			Intent intent = new Intent(main, ItemEditActivity.class);
+			intent.putExtra("requestCode", MainActivity.REQUEST_EDIT);
 			intent.putExtra("position", position);
 			intent.putExtra("caption", item.getCaption());
 			intent.putExtra("description", item.getDescription());
-			main.startActivityForResult(intent, main.REQUEST_EDIT);
+			main.startActivityForResult(intent, MainActivity.REQUEST_EDIT);
 			break;
 			
 		case R.id.item_delete_button:
