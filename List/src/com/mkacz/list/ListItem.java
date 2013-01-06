@@ -11,14 +11,27 @@ public class ListItem implements OnCheckedChangeListener
 	
 	public ListItem(String caption, String description)
 	{
-		this.checked		= false;
-		this.caption		= caption;
-		this.description	= description;
+		this.checked = false;
+		this.caption = caption;
+		this.description = description;
+	}
+	
+	public ListItem(boolean checked, String caption, String description)
+	{
+		this.checked = checked;
+		this.caption = caption;
+		this.description = description; 
+		
 	}
 	
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
 	{
 		checked = isChecked;
+	}
+	
+	public void setChecked(boolean checked)
+	{
+		this.checked = checked;
 	}
 	
 	public boolean isChecked()

@@ -8,6 +8,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class ItemEditActivity extends Activity
 {	
@@ -17,7 +18,7 @@ public class ItemEditActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_edit);
         
-        Intent intent = getIntent();
+        final Intent intent = getIntent();
         final int requestCode = intent.getIntExtra("requestCode", -1);
         final int position = intent.getIntExtra("position", -1);
         final EditText captionEditText = (EditText) findViewById(
@@ -45,6 +46,7 @@ public class ItemEditActivity extends Activity
         {
         	public void onClick(View view)
         	{
+
         		switch (view.getId())
         		{
         		case R.id.cancel_button:
@@ -52,13 +54,23 @@ public class ItemEditActivity extends Activity
         			break;
         		
         		case R.id.confirm_button:
+        			String caption = captionEditText.getText().toString();
+	        		String description = descriptionEditText.getText()
+	        				.toString();
+		            if (caption == null || caption.length() == 0
+		            		|| description == null || description.length() == 0)
+		            {
+		            	Toast toast = Toast.makeText(getApplicationContext(),
+		            			R.string.empty_fields_alert,
+		            			Toast.LENGTH_SHORT);
+		            	toast.show();
+		            	return;
+		            }
         			Intent result = new Intent();
         			if (requestCode == MainActivity.REQUEST_EDIT)
         				result.putExtra("position", position);
-        			result.putExtra("caption",
-        					captionEditText.getText().toString());
-        			result.putExtra("description",
-        					descriptionEditText.getText().toString());
+        			result.putExtra("caption", caption);
+        			result.putExtra("description", description);
         			setResult(Activity.RESULT_OK, result);
         			break;
         		}

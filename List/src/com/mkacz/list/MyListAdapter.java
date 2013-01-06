@@ -1,30 +1,53 @@
 package com.mkacz.list;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.Filter;
 import android.widget.TextView;
 
-public class MyListAdapter extends ArrayAdapter<ListItem>
+public class MyListAdapter extends BaseAdapter
 {
 	private final LayoutInflater	inflater;
-	private final List<ListItem>	items;
+	private final List<ListItem>	baseItems;
+	private List<ListItem>			items;
+	private MyFilter				filter = new MyFilter();
+	private String					constraint = null;
 	
 	public MyListAdapter(Context context, List<ListItem> items)
 	{
-		super(context, R.layout.list_item, items);
-		
 		this.inflater = (LayoutInflater) context.getSystemService(
 				Context.LAYOUT_INFLATER_SERVICE);
+		this.baseItems = items;
 		this.items = items;
 	}
 	
-	@Override
+	public int getCount()
+	{
+		return items.size();
+	}
+	
+	public long getItemId(int position)
+	{
+		return -1;
+	}
+	
+	public ListItem getItem(int position)
+	{
+		return items.get(position);
+	}
+	
+	public void addItem(ListItem item)
+	{
+		baseItems.add(item);
+	}
+	
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
 		View view	= convertView != null
@@ -46,8 +69,67 @@ public class MyListAdapter extends ArrayAdapter<ListItem>
 		return view;
 	}
 	
-	public void removeItem(int position)
+	public void deleteItem(ListItem item)
 	{
-		items.remove(position);
+		baseItems.remove(item);
+	}
+	
+	public void filter(String constraint)
+	{
+		if (constraint == null || constraint.length() == 0
+				&& items != baseItems)
+		{
+			this.constraint = null;
+			items = baseItems;
+			super.notifyDataSetChanged();
+		}
+		else
+		{
+			this.constraint = constraint.toLowerCase();
+			filter.filter(this.constraint);
+		}
+	}
+	
+	public void refilter()
+	{
+		filter(constraint);
+	}
+	
+	public void notifyDataSetChanged()
+	{
+		if (items == baseItems)
+			super.notifyDataSetChanged();
+		refilter();
+	}
+	
+	public void notifyDataSetInvalidated()
+	{
+		if (items == baseItems)
+			super.notifyDataSetInvalidated();
+		refilter();
+	}
+	
+	private class MyFilter extends Filter
+	{
+		@Override
+		protected FilterResults performFiltering(CharSequence constraint)
+		{
+			List<ListItem> filteredItems = new LinkedList<ListItem>();
+			for (ListItem item : baseItems)
+				if (item.getCaption().toLowerCase().contains(constraint))
+					filteredItems.add(item);
+			FilterResults results = new FilterResults();
+			results.values = filteredItems;
+			return results;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected void publishResults(CharSequence constraint,
+				FilterResults results)
+		{
+			items = (List<ListItem>) results.values;
+			MyListAdapter.super.notifyDataSetChanged();
+		}
 	}
 }
